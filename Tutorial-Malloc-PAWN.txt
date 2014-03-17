@@ -1,0 +1,165 @@
+Bom Galera , Vou ensinar a Vocês a Utilizar a include Malloc De Y_LESS.
+
+Como alguns Ja sabem Essa função existe em C /C++ Porem com essa include e possivel alocar memoria in pawn 
+
+ Precisamos da Seguinte include Para iniciar O tutorial :
+ Aqui Você pode encontrar ela.
+
+
+Bom shittt(merda) Oque e malloc ? 
+
+Resposta :
+
+malloc é um termo da computação que designa uma função da biblioteca padrão das linguagens de programação C e C++ para requisitar alocação dinâmica de memória. É uma forma abreviada de escrever memory allocation (alocação de memória).
+
+Fonte : Wikipedia and Google .
+
+Perigo !
+
+
+Antes Vou avisar umas coisinhas : No Malloc em si Pode ser prejudicial ao seu Script , O Sistema de alocação do PAWN ja esta Otimo , Isso e pra quem Procura Mais memoria , Treine com seus Script antes de coloca-los em um FS Ou Gamemode , Pode Ocorrer tambem Problemas de fragmentação De Memoria , Vazamento de Memória , Buffer Overflow : Escrer na memória para alem do limite da Aréa Alocada; Uso de areas liberadas tipo escrever numa região onnde a memória ja foi liberada por Free , Falhas no malloc : se nao houver memória disponível o malloc irá falhar !.
+
+Shittt explica Erros:
+
+Vazamento de Memoria :
+
+Esse Script Não irá destruir a memoria criada , Ela continuara ali , Mais você vai perde Aquela memória , Isso significa que Você não pode mais Apagar Ou ser Utilizada , Basicamente aquela memoria alocada ( 10 ) e algo totalmente Inútil, Isso se chama Vazamento de Memoria .
+
+Code:
+stock MinhaMemoria() {
+    new Alloc:memory = malloc(10);
+    //defini disse que e pra alocar na variavel , 10 de memoria :p
+}
+Variavel Alocadora " Memory " é local naquela Função , ISSO Significa que ela e destruida quando a função termina , Mais a memoria alocada ( 10 ) Não e destruida , isso e um Vazamento Mais explicado HUE. 
+
+
+
+Fragmentação :
+
+Code:
+new
+    a = malloc(11),
+    b = malloc(11),
+    c = malloc(11),
+    d = malloc(11);
+free(a);//liberei 11 de memoria da variavel a
+free(c);//liberei 11 de memoria da variavel c
+//total de memória liberada e 24 .
+new
+    e = malloc(24);
+No (simplificado) exemplo acima são alocados 48 células, em seguida, 24 estão liberados, a 24 são atribuídos mais uma vez, no entanto, a alocação final falhará porque embora saibamos há 48 células disponíveis, eles não são contíguos (em conjunto) pode assim ser alocados em um único bloco, isto e uma fragmentação  .
+
+Valores Indefinidos :
+
+No PAWN todas as variáveis, exceto quando indicado de outra forma, começar como 0, não é assim com malloc. Se você criar uma matriz usando malloc Pode não ser todos 0. Isso pode ser bom em algumas circunstâncias (é mais rápido) e ruim em outros. Para os momentos em que é ruim há uma função calloc (clear malloc) que irá alocar a memória e definir tudo para 0.
+
+Falta de memória :
+
+isso significa que você está tentando alocar mais memória do que existe.
+
+Out Of Bounds (OOB) :
+
+é quando você tenta acessar algo que não é, na verdade, em uma matriz. existem dois modos de operação : segura (lento) e inseguro (rápido)
+
+Rápido(inseguro) :
+
+Code:
+new Alloc:memoria = malloc(10);
+mset(memoria, 0, 42);
+//Função mset Mais a frente irei explicar sobre ela !
+Inseguro Não tem nenhuma verificação, você pode facilmente danificar a memória e Destruir tudo.
+
+Code:
+new
+    Alloc:memoria = malloc(10);
+if (memoria)
+{
+    mset(mem, 0, valor para alocar);
+}
+else
+{
+    // ...
+}
+^^ Versao segura , com verificação .
+
+
+Começando  
+
+
+Como utiliza-la no Pawn ?
+
+Resposta : Simples Depois que baixar-mos a include Vamos definir ela (retardado todos ja sabem, podera ter alguns que estão começando agr ne fio XD).
+
+Code:
+#include <malloc>
+Agr poderei Explicar as Funções ...
+
+Funções :
+
+Code:
+malloc (tamanho para alocar) - Aloca uma região de memória com o tamanho especificado.
+livre (slot) - Libera a memória especificada.
+mset (slot, índice , valor) - Coloca o valor dado para a região de memória especificado no endereço fornecido.
+mget (slot, index) - Obtém o valor no índice fornecido do slot de memória especificado.
+msets (slot, índice, String) - Como mset mas para strings, irá utilizar-se mais de um slot.
+mgets (slot, índice) - Como mget mas para strings, em modo inseguro você pode ser capaz de usar mget.
+Malloc_SlotSize (slot) - Retorna o tamanho de um bloco alocado.
+Para Experientes :
+
+Definições :
+
+Se você colocar :
+Code:
+YSI_MALLOC_NO_SHORT
+Você automaticamente N utiliza mais Aquelas funções anteriores , Você vai utilizar estas mais Completas :
+
+Code:
+Malloc_Set 
+Malloc_Get 
+Malloc_SetS 
+Malloc_GetS
+Estes quatro são na ordem de precedência (se você definiu mais de um o mais elevado será usado). Observe que a ordem só é ditado pela ordem totalmente aleatória eu fiz dentro Estes todos ir antes de sua definição na include para determinar a quantidade de memória a ser reservada para a matriz de alocação. Se você não usar nenhum o padrão é 1Mb.
+
+Code:
+MALLOC_MEMORY - Número de células de reserva. 
+
+MALLOC_MEMORY_KB - Número de killobytes a reserva. 
+
+MALLOC_MEMORY_MB - Número de megabytes para a reserva. 
+
+MALLOC_MEMORY_B - Número de bytes para a reserva.
+Se Você Definir YSI_MALLOC_SECURE , a include vai Verificar os limites ! .
+
+Strings:
+
+Se estiver usando O Metodo inseguro(rápido)
+
+Para pegar Strings Faça como o Exemplo
+Code:
+format(string, sizeof (string), "String: %s", mget(alMyData, 2));
+Enum's :
+
+Utilize Este Exemplo de Script :
+Code:
+e_exempl
+{
+    e_exempl_primeiro,
+    e_exempl_segundo
+}
+
+new Alloc:Data;
+
+main()
+{
+    Data = malloc(e_exempl);
+    if (Data)
+    {
+        mset(Data, e_exempl_primeiro, 10);
+    }
+}
+Fim .
+
+Creditos A : Y_Less
+Eu Praticamente pouca coisa ...
+
+Flw Erros poste ai que eu corrijo !
